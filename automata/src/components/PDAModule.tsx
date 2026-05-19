@@ -9,7 +9,6 @@ import {
   MarkerType,
   Handle,
   Position,
-  ReactFlowProvider,
   useReactFlow,
   useNodesState,
   useEdgesState,
@@ -24,405 +23,405 @@ type RegexChoice = "regex1" | "regex2";
 
 interface PDANodeData {
   label: string;
-  nodeType: "start" | "read" | "push" | "pop" | "accept" | "reject";
+  nodeType: "start" | "read" | "accept" | "reject";
   [key: string]: unknown;
 }
 
 // ─────────────────────────────────────────────────────────────
-//  CUSTOM NODE SHAPES — professor's flowchart style
-//  oval  = START / ACCEPT / REJECT
-//  diamond = READ / POP
-//  rectangle = PUSH
+//  CUSTOM NODE SHAPES
+//  oval    = START / ACCEPT / REJECT
+//  diamond = READ (all branching states)
 // ─────────────────────────────────────────────────────────────
 
-/** Invisible handle helper */
-const H = (
-  type: "source" | "target",
-  pos: Position,
-  id: string,
-  extra?: React.CSSProperties
-) => <Handle type={type} position={pos} id={id} style={{ opacity: 0, ...extra }} />;
-
-const AllHandles = () => (
+// Each node gets one handle per cardinal direction (top/bottom/left/right).
+// We keep it simple — one handle per side — so edge sourceHandle/targetHandle
+// IDs are always predictable and never missing.
+const Handles = () => (
   <>
-    {H("source", Position.Top, "st")}
-    {H("target", Position.Top, "tt")}
-    {H("source", Position.Top, "stl", { left: "25%" })}
-    {H("target", Position.Top, "ttl", { left: "25%" })}
-    {H("source", Position.Top, "str", { left: "75%" })}
-    {H("target", Position.Top, "ttr", { left: "75%" })}
-    {H("source", Position.Bottom, "sb")}
-    {H("target", Position.Bottom, "tb")}
-    {H("source", Position.Bottom, "sbl", { left: "25%" })}
-    {H("target", Position.Bottom, "tbl", { left: "25%" })}
-    {H("source", Position.Bottom, "sbr", { left: "75%" })}
-    {H("target", Position.Bottom, "tbr", { left: "75%" })}
-    {H("source", Position.Left, "sl")}
-    {H("target", Position.Left, "tl")}
-    {H("source", Position.Left, "slt", { top: "25%" })}
-    {H("target", Position.Left, "tlt", { top: "25%" })}
-    {H("source", Position.Left, "slb", { top: "75%" })}
-    {H("target", Position.Left, "tlb", { top: "75%" })}
-    {H("source", Position.Right, "sr")}
-    {H("target", Position.Right, "tr")}
-    {H("source", Position.Right, "srt", { top: "25%" })}
-    {H("target", Position.Right, "trt", { top: "25%" })}
-    {H("source", Position.Right, "srb", { top: "75%" })}
-    {H("target", Position.Right, "trb", { top: "75%" })}
+    <Handle type="source" position={Position.Top}    id="s-top"    style={{ opacity: 0 }} />
+    <Handle type="target" position={Position.Top}    id="t-top"    style={{ opacity: 0 }} />
+    <Handle type="source" position={Position.Bottom} id="s-bot"    style={{ opacity: 0 }} />
+    <Handle type="target" position={Position.Bottom} id="t-bot"    style={{ opacity: 0 }} />
+    <Handle type="source" position={Position.Left}   id="s-left"   style={{ opacity: 0 }} />
+    <Handle type="target" position={Position.Left}   id="t-left"   style={{ opacity: 0 }} />
+    <Handle type="source" position={Position.Right}  id="s-right"  style={{ opacity: 0 }} />
+    <Handle type="target" position={Position.Right}  id="t-right"  style={{ opacity: 0 }} />
   </>
 );
 
-/** Oval — START / ACCEPT / REJECT */
 const OvalNode: React.FC<{ data: PDANodeData }> = ({ data }) => {
   const { nodeType, label } = data;
   const isAccept = nodeType === "accept";
   const isReject = nodeType === "reject";
   const isStart  = nodeType === "start";
-
   const bg     = isAccept ? "#052e16" : isReject ? "#3b0000" : isStart ? "#1e1a35" : "#2a2a2a";
   const border = isAccept ? "#4ade80" : isReject ? "#f87171" : isStart ? "#a78bfa" : "#acacac";
   const color  = isAccept ? "#4ade80" : isReject ? "#f87171" : isStart ? "#a78bfa" : "#ffffff";
-
   return (
     <div style={{
-      position: "relative",
-      width: 84, height: 38,
-      borderRadius: 19,
-      background: bg,
-      border: `2px solid ${border}`,
-      color,
-      fontFamily: "monospace",
-      fontWeight: 700,
-      fontSize: 11,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
+      position: "relative", width: 84, height: 38, borderRadius: 19,
+      background: bg, border: `2px solid ${border}`, color,
+      fontFamily: "monospace", fontWeight: 700, fontSize: 11,
+      display: "flex", alignItems: "center", justifyContent: "center",
       userSelect: "none",
     }}>
       {label}
-      <AllHandles />
+      <Handles />
     </div>
   );
 };
 
-/** Diamond — READ / POP */
 const DiamondNode: React.FC<{ data: PDANodeData }> = ({ data }) => {
-  const { nodeType, label } = data;
-  const isRead = nodeType === "read";
-  const bg     = isRead ? "#0c1a2e" : "#1a0c2e";
-  const border = isRead ? "#74DCFF" : "#c084fc";
-  const color  = isRead ? "#74DCFF" : "#c084fc";
-
+  const { label } = data;
   return (
-    <div style={{ position: "relative", width: 76, height: 76, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ position: "relative", width: 80, height: 80, display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{
-        position: "absolute",
-        width: 56, height: 56,
-        background: bg,
-        border: `2px solid ${border}`,
+        position: "absolute", width: 58, height: 58,
+        background: "#0c1a2e", border: "2px solid #74DCFF",
         transform: "rotate(45deg)",
-        transition: "all 0.2s ease",
       }} />
       <div style={{
-        position: "relative", zIndex: 2,
-        color, fontFamily: "monospace", fontWeight: 700,
+        position: "relative", zIndex: 2, color: "#74DCFF",
+        fontFamily: "monospace", fontWeight: 700,
         fontSize: 9, textAlign: "center", lineHeight: 1.2, userSelect: "none",
       }}>
         {label}
       </div>
-      <AllHandles />
+      <Handles />
     </div>
   );
 };
 
-/** Rectangle — PUSH */
-const PushNode: React.FC<{ data: PDANodeData }> = ({ data }) => (
-  <div style={{
-    position: "relative",
-    width: 90, height: 36,
-    borderRadius: 3,
-    background: "#0a1a0a",
-    border: "2px solid #4ade80",
-    color: "#4ade80",
-    fontFamily: "monospace", fontWeight: 700, fontSize: 11,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    userSelect: "none",
-  }}>
-    {data.label}
-    <AllHandles />
-  </div>
-);
-
-const nodeTypes = { oval: OvalNode, diamond: DiamondNode, push: PushNode };
+const nodeTypes = { oval: OvalNode, diamond: DiamondNode };
 
 // ─────────────────────────────────────────────────────────────
-//  GRAPH BUILDER HELPERS
+//  BUILDER HELPERS
 // ─────────────────────────────────────────────────────────────
 
-type NType = PDANodeData["nodeType"];
-
-function N(id: string, x: number, y: number, label: string, nodeType: NType): Node {
-  const type = nodeType === "read" || nodeType === "pop" ? "diamond"
-             : nodeType === "push" ? "push" : "oval";
-  return { id, type, position: { x, y }, data: { label, nodeType } };
+function N(id: string, x: number, y: number, label: string, nodeType: PDANodeData["nodeType"]): Node {
+  return {
+    id, type: nodeType === "read" ? "diamond" : "oval",
+    position: { x, y },
+    data: { label, nodeType },
+  };
 }
 
+// sh / th = "s-top" | "s-bot" | "s-left" | "s-right" | "t-top" | "t-bot" | "t-left" | "t-right"
 function E(
   id: string, source: string, target: string, label: string,
-  sh: string, th: string, type: "straight" | "smoothstep" = "straight"
+  sh: string, th: string,
+  curved = false,
 ): Edge {
   return {
     id, source, target, label,
+    sourceHandle: sh, targetHandle: th,
+    type: curved ? "smoothstep" : "straight",
+    animated: false,
     labelStyle: { fill: "#e2e8f0", fontWeight: 600, fontSize: 11 },
     labelBgStyle: { fill: "#1a1a1a", fillOpacity: 0.92 },
     labelBgPadding: [3, 5] as [number, number],
     labelBgBorderRadius: 3,
-    sourceHandle: sh, targetHandle: th, type,
-    animated: false,
     markerEnd: { type: MarkerType.ArrowClosed, color: "#6b7280" },
     style: { strokeWidth: 2.5, stroke: "#57565699" },
   };
 }
 
 // ─────────────────────────────────────────────────────────────
-//  PDA GRAPH — Regex 1 (a/b)
+//  PDA — Regex 1 (a/b)
 //  Language: (a+b)(a+b)*(aa+bb)(ab+ba)(a+b)*(aba+baa)
 //
-//  Flowchart mirrors professor's diagram style:
-//  START → READ₁ (reads first char, pushes it)
-//        → PUSH a / PUSH b
-//        → READ₂ (loop: read & push middle chars)
-//        → READ₃ (reads 'b' branch for structural check)
-//        → POP    (pops a, checks stack)
-//        → READ₄  (reads remaining, checks Δ)
-//        → POP₂   (final stack empty check)
-//        → ACCEPT / REJECT
+//  State machine (from spec):
+//  START → READ1
+//  READ1:  a/b → READ2,  Δ → REJECT
+//  READ2:  a → READ3A,   b → READ3B,  Δ → REJECT
+//  READ3A: a → READ4A,   b → READ2,   Δ → REJECT
+//  READ3B: b → READ4B,   a → READ2,   Δ → REJECT
+//  READ4A: b → READ5,    a → READ2,   Δ → REJECT
+//  READ4B: a → READ5,    b → READ2,   Δ → REJECT
+//  READ5:  a → READ6A,   b → READ6B,  Δ → REJECT
+//  READ6A: a → READ6A,   b → READ7A,  Δ → REJECT
+//  READ6B: b → READ6B,   a → READ7B,  Δ → REJECT
+//  READ7A: a → RACC,     b → READ6B,  Δ → REJECT
+//  READ7B: a → RACC,     b → READ6B,  Δ → REJECT
+//  RACC:   Δ → ACCEPT,   a → READ6A,  b → READ6B
 //
-//  Layout: top-to-bottom / left-to-right cascade
+//  Layout strategy: columns spaced 200px apart, rows spaced 130px.
+//  Each READ state is centred at a column/row intersection.
+//  REJECT nodes float above or below their parent.
 // ─────────────────────────────────────────────────────────────
 
+// Column x-positions
+const C1=80, C2=280, C3A=460, C3B=460, C4A=640, C4B=640, C5=820, C6A=1000, C6B=1000, C7A=1180, C7B=1180, C8=1360, C9=1540;
+// Row y-positions (upper track = y≈60, lower track = y≈190)
+const RU=60, RL=190, RM=125;
+
 export const PdaAbNodes: Node[] = [
-  // Col 0
-  N("start",       80,   0,  "START",      "start"),
-  N("r1",          80,  90,  "READ₁",        "read"),
-  N("rej_r1",      80, 210,  "REJECT",     "reject"),
-  // Col 1
-  N("rej_r2",     260, -40,  "REJECT",     "reject"),
-  N("r2",         260,  90,  "READ₂",        "read"),
-  // Col 2
-  N("r3a",        440,  20,  "READ 3a",   "read"),
-  N("r3b",        440, 160,  "READ 3b",   "read"),
-  // Col 3
-  N("rej_r3a",    620, -40,  "REJECT",     "reject"),
-  N("r4a",        620,  20,  "READ 4a",   "read"),
-  N("r4b",        620, 160,  "READ 4b",   "read"),
-  N("rej_r3b",    620, 260,  "REJECT",     "reject"),
-  // Col 4
-  N("rej_r5",     800, -40,  "REJECT",     "reject"),
-  N("r5",         800,  90,  "READ₅",        "read"),
-  // Col 5
-  N("r6a",        980,  20,  "READ 6a",   "read"),
-  N("rej_r6a",    980, -80,  "REJECT",     "reject"),
-  N("r6b",        980, 160,  "READ 6b",   "read"),
-  N("rej_r6b",    980, 260,  "REJECT",     "reject"),
-  // Col 6
-  N("r7a",       1160,  20,  "READ 7a",   "read"),
-  N("rej_r7a",   1160, -80,  "REJECT",     "reject"),
-  N("r7b",       1160, 160,  "READ 7b",   "read"),
-  N("rej_r7b",   1160, 260,  "REJECT",     "reject"),
-  // Col 7
-  N("r_acc",     1340,  90,  "R.ACC", "read"),
-  // Col 8
-  N("accept",    1520,  90,  "ACCEPT",     "accept"),
+  N("start",  C1-10, RM-125, "START",   "start"),
+  N("r1",     C1-10, RM,     "READ₁",   "read"),
+  N("rej_r1", C1-10, RM+130, "REJECT",  "reject"),
+
+  N("r2",     C2,    RM,     "READ₂",   "read"),
+  N("rej_r2", C2,    RM-100, "REJECT",  "reject"),
+
+  N("r3a",    C3A,   RU,     "READ 3a", "read"),
+  N("r3b",    C3B,   RL,     "READ 3b", "read"),
+  N("rej_r3a",C3A,   RU-100, "REJECT",  "reject"),
+  N("rej_r3b",C3B,   RL+100, "REJECT",  "reject"),
+
+  N("r4a",    C4A,   RU,     "READ 4a", "read"),
+  N("r4b",    C4B,   RL,     "READ 4b", "read"),
+  N("rej_r4a",C4A,   RU-100, "REJECT",  "reject"),
+  N("rej_r4b",C4B,   RL+100, "REJECT",  "reject"),
+
+  N("r5",     C5,    RM,     "READ₅",   "read"),
+  N("rej_r5", C5,    RM-100, "REJECT",  "reject"),
+
+  N("r6a",    C6A,   RU,     "READ 6a", "read"),
+  N("r6b",    C6B,   RL,     "READ 6b", "read"),
+  N("rej_r6a",C6A,   RU-100, "REJECT",  "reject"),
+  N("rej_r6b",C6B,   RL+100, "REJECT",  "reject"),
+
+  N("r7a",    C7A,   RU,     "READ 7a", "read"),
+  N("r7b",    C7B,   RL,     "READ 7b", "read"),
+  N("rej_r7a",C7A,   RU-100, "REJECT",  "reject"),
+  N("rej_r7b",C7B,   RL+100, "REJECT",  "reject"),
+
+  N("r_acc",  C8,    RM,     "R.ACC",   "read"),
+  N("accept", C9,    RM,     "ACCEPT",  "accept"),
 ];
 
 export const PdaAbEdges: Edge[] = [
-  // START -> READ1
-  E("s-r1",        "start",  "r1",      "",      "sb",  "tt"),
+  // START → READ1
+  E("s-r1",       "start",  "r1",      "",    "s-bot",   "t-top"),
 
-  // READ1: a->READ2, b->READ2, Delta->REJECT
-  E("r1-r2a",      "r1",     "r2",      "a",     "srt", "tl"),
-  E("r1-r2b",      "r1",     "r2",      "b",     "srb", "tlb"),
-  E("r1-rej",      "r1",     "rej_r1",  "Δ", "sb",  "tt"),
+  // READ1: a/b → READ2,  Δ → REJECT
+  E("r1-r2a",     "r1",     "r2",      "a",   "s-right", "t-left"),
+  E("r1-r2b",     "r1",     "r2",      "b",   "s-right", "t-left"),
+  E("r1-rej",     "r1",     "rej_r1",  "Δ",   "s-bot",   "t-top"),
 
-  // READ2: a->READ3A, b->READ3B, Delta->REJECT
-  E("r2-r3a",      "r2",     "r3a",     "a",     "srt", "tlb"),
-  E("r2-r3b",      "r2",     "r3b",     "b",     "srb", "tlt"),
-  E("r2-rej",      "r2",     "rej_r2",  "Δ", "st",  "tb"),
+  // READ2: a → READ3A,  b → READ3B,  Δ → REJECT
+  E("r2-r3a",     "r2",     "r3a",     "a",   "s-right", "t-left"),
+  E("r2-r3b",     "r2",     "r3b",     "b",   "s-right", "t-left"),
+  E("r2-rej",     "r2",     "rej_r2",  "Δ",   "s-top",   "t-bot"),
 
-  // READ3A: a->READ4A, b->READ2(loop back)
-  E("r3a-r4a",     "r3a",    "r4a",     "a",     "sr",  "tl"),
-  E("r3a-r2",      "r3a",    "r2",      "b",     "sb",  "stl", "smoothstep"),
+  // READ3A: a → READ4A,  b → READ2 (back),  Δ → REJECT
+  E("r3a-r4a",    "r3a",    "r4a",     "a",   "s-right", "t-left"),
+  E("r3a-r2",     "r3a",    "r2",      "b",   "s-bot",   "t-bot",   true),
+  E("r3a-rej",    "r3a",    "rej_r3a", "Δ",   "s-top",   "t-bot"),
 
-  // READ3B: b->READ4B, a->READ2(loop back)
-  E("r3b-r4b",     "r3b",    "r4b",     "b",     "sr",  "tl"),
-  E("r3b-r2",      "r3b",    "r2",      "a",     "st",  "sbl", "smoothstep"),
+  // READ3B: b → READ4B,  a → READ2 (back),  Δ → REJECT
+  E("r3b-r4b",    "r3b",    "r4b",     "b",   "s-right", "t-left"),
+  E("r3b-r2",     "r3b",    "r2",      "a",   "s-top",   "t-bot",   true),
+  E("r3b-rej",    "r3b",    "rej_r3b", "Δ",   "s-bot",   "t-top"),
 
-  // READ4A: b->READ5, a->READ2(reset)
-  E("r4a-r5",      "r4a",    "r5",      "b",     "sr",  "stl"),
-  E("r4a-r2",      "r4a",    "r2",      "a",     "sb",  "str", "smoothstep"),
-  E("r4a-rej",     "r4a",    "rej_r3a", "Δ", "st",  "tb"),
+  // READ4A: b → READ5,  a → READ2 (back),  Δ → REJECT
+  E("r4a-r5",     "r4a",    "r5",      "b",   "s-right", "t-left"),
+  E("r4a-r2",     "r4a",    "r2",      "a",   "s-bot",   "t-top",   true),
+  E("r4a-rej",    "r4a",    "rej_r4a", "Δ",   "s-top",   "t-bot"),
 
-  // READ4B: a->READ5, b->READ2(reset)
-  E("r4b-r5",      "r4b",    "r5",      "a",     "sr",  "sbl"),
-  E("r4b-r2",      "r4b",    "r2",      "b",     "sb",  "sbr", "smoothstep"),
-  E("r4b-rej",     "r4b",    "rej_r3b", "Δ", "sb",  "tt"),
+  // READ4B: a → READ5,  b → READ2 (back),  Δ → REJECT
+  E("r4b-r5",     "r4b",    "r5",      "a",   "s-right", "t-left"),
+  E("r4b-r2",     "r4b",    "r2",      "b",   "s-top",   "t-bot",   true),
+  E("r4b-rej",    "r4b",    "rej_r4b", "Δ",   "s-bot",   "t-top"),
 
-  // READ5: a->READ6A, b->READ6B, Delta->REJECT
-  E("r5-r6a",      "r5",     "r6a",     "a",     "srt", "tlb"),
-  E("r5-r6b",      "r5",     "r6b",     "b",     "srb", "tlt"),
-  E("r5-rej",      "r5",     "rej_r5",  "Δ", "st",  "tb"),
+  // READ5: a → READ6A,  b → READ6B,  Δ → REJECT
+  E("r5-r6a",     "r5",     "r6a",     "a",   "s-right", "t-left"),
+  E("r5-r6b",     "r5",     "r6b",     "b",   "s-right", "t-left"),
+  E("r5-rej",     "r5",     "rej_r5",  "Δ",   "s-top",   "t-bot"),
 
-  // READ6A: a->READ6A(self-loop), b->READ7A, Delta->REJECT
-  E("r6a-self",    "r6a",    "r6a",     "a",     "slt", "ttr", "smoothstep"),
-  E("r6a-r7a",     "r6a",    "r7a",     "b",     "sr",  "tl"),
-  E("r6a-rej",     "r6a",    "rej_r6a", "Δ", "st",  "tb"),
+  // READ6A: a → READ6A (self),  b → READ7A,  Δ → REJECT
+  E("r6a-self",   "r6a",    "r6a",     "a",   "s-top",   "t-left",  true),
+  E("r6a-r7a",    "r6a",    "r7a",     "b",   "s-right", "t-left"),
+  E("r6a-rej",    "r6a",    "rej_r6a", "Δ",   "s-top",   "t-bot"),
 
-  // READ6B: b->READ6B(self-loop), a->READ7B, Delta->REJECT
-  E("r6b-self",    "r6b",    "r6b",     "b",     "slb", "tbr", "smoothstep"),
-  E("r6b-r7b",     "r6b",    "r7b",     "a",     "sr",  "tl"),
-  E("r6b-rej",     "r6b",    "rej_r6b", "Δ", "sb",  "tt"),
+  // READ6B: b → READ6B (self),  a → READ7B,  Δ → REJECT
+  E("r6b-self",   "r6b",    "r6b",     "b",   "s-bot",   "t-right", true),
+  E("r6b-r7b",    "r6b",    "r7b",     "a",   "s-right", "t-left"),
+  E("r6b-rej",    "r6b",    "rej_r6b", "Δ",   "s-bot",   "t-top"),
 
-  // READ7A: a->READ_ACCEPT, b->READ6B, Delta->REJECT
-  E("r7a-acc",     "r7a",    "r_acc",   "a",     "sr",  "stl"),
-  E("r7a-r6b",     "r7a",    "r6b",     "b",     "sb",  "tr", "smoothstep"),
-  E("r7a-rej",     "r7a",    "rej_r7a", "Δ", "st",  "tb"),
+  // READ7A: a → RACC,  b → READ6B,  Δ → REJECT
+  E("r7a-acc",    "r7a",    "r_acc",   "a",   "s-right", "t-top"),
+  E("r7a-r6b",    "r7a",    "r6b",     "b",   "s-bot",   "t-right", true),
+  E("r7a-rej",    "r7a",    "rej_r7a", "Δ",   "s-top",   "t-bot"),
 
-  // READ7B: a->READ_ACCEPT, b->READ6B, Delta->REJECT
-  E("r7b-acc",     "r7b",    "r_acc",   "a",     "sr",  "sbl"),
-  E("r7b-r6b",     "r7b",    "r6b",     "b",     "sb",  "trb", "smoothstep"),
-  E("r7b-rej",     "r7b",    "rej_r7b", "Δ", "sb",  "tt"),
+  // READ7B: a → RACC,  b → READ6B,  Δ → REJECT
+  E("r7b-acc",    "r7b",    "r_acc",   "a",   "s-right", "t-bot"),
+  E("r7b-r6b",    "r7b",    "r6b",     "b",   "s-top",   "t-right", true),
+  E("r7b-rej",    "r7b",    "rej_r7b", "Δ",   "s-bot",   "t-top"),
 
-  // READ_ACCEPT: Delta->ACCEPT, a->READ6A, b->READ6B
-  E("racc-acc",    "r_acc",  "accept",  "Δ", "sr",  "tl"),
-  E("racc-r6a",    "r_acc",  "r6a",     "a",     "st",  "srb", "smoothstep"),
-  E("racc-r6b",    "r_acc",  "r6b",     "b",     "sb",  "srb", "smoothstep"),
+  // RACC: Δ → ACCEPT,  a → READ6A,  b → READ6B
+  E("racc-acc",   "r_acc",  "accept",  "Δ",   "s-right", "t-left"),
+  E("racc-r6a",   "r_acc",  "r6a",     "a",   "s-top",   "t-right", true),
+  E("racc-r6b",   "r_acc",  "r6b",     "b",   "s-bot",   "t-right", true),
 ];
 
 // ─────────────────────────────────────────────────────────────
-//  PDA GRAPH — Regex 2 (0/1)
+//  PDA — Regex 2 (0/1)
 //  Language: (11+00)(1+0)*(101+111+01)(00*+11*)(1+0+11)
+//
+//  State machine (from spec):
+//  START  → READ1
+//  READ1:   1 → READ2A,   0 → READ2B,   Δ → REJECT
+//  READ2A:  1 → READ3,    0 → REJECT,   Δ → REJECT
+//  READ2B:  0 → READ3,    1 → REJECT,   Δ → REJECT
+//  READ3:   1 → READ4A,   0 → READ4B,   Δ → REJECT
+//  READ4A:  1 → READ5A,   0 → READ5B,   Δ → REJECT
+//  READ4B:  1 → READ6,    0 → READ3,    Δ → REJECT
+//  READ5A:  1 → READ6,    0 → READ4B,   Δ → REJECT
+//  READ5B:  1 → READ6,    0 → READ3,    Δ → REJECT
+//  READ6:   1 → READ7A,   0 → READ7B,   Δ → REJECT
+//  READ7A:  1 → READ8A,   0 → READ8C,   Δ → REJECT
+//  READ7B:  0 → READ7B,   1 → READ8B,   Δ → REJECT
+//  READ8A:  1 → READ9A,   0 → READ8C,   Δ → ACCEPT
+//  READ8B:  1 → READ9B,   0 → READ7B,   Δ → ACCEPT
+//  READ8C:  1 → READ9B,   0 → READ7B,   Δ → REJECT
+//  READ9A:  1 → READ9A,   0 → READ8C,   Δ → ACCEPT
+//  READ9B:  1 → READ9A,   0 → READ8C,   Δ → REJECT
 // ─────────────────────────────────────────────────────────────
 
+// Column x-positions (200px apart)
+const D1=80, D2A=280, D2B=280, D3=480, D4A=680, D4B=680, D5A=880, D5B=880,
+      D6=1080, D7A=1280, D7B=1280, D8A=1480, D8B=1480, D8C=1480,
+      D9A=1680, D9B=1680, DACC=1880;
+
+// Row y-positions
+const T=-30, RR1=80, RR2=200, RR3=320, RR4=440;
+
 export const Pda01Nodes: Node[] = [
-  // Col 0: START + initial split
-  N("start",       80,   0,  "START",      "start"),
-  N("r1a",         80,  90,  "READ 1a",   "read"),
-  N("rej_r1a",     80, 200,  "REJECT",     "reject"),
-  N("r1b",        -80,  90,  "READ 1b",   "read"),
-  N("rej_r1b",    -80, 200,  "REJECT",     "reject"),
-  // Col 1: READ2 hub
-  N("rej_r2",     260, -40,  "REJECT",     "reject"),
-  N("r2",         260,  90,  "READ₂",        "read"),
-  // Col 2: READ3A/3B
-  N("r3a",        440,  20,  "READ 3a",   "read"),
-  N("r3b",        440, 160,  "READ 3b",   "read"),
-  // Col 3: READ4A/4B + rejects
-  N("rej_r4a",    620, -60,  "REJECT",     "reject"),
-  N("r4a",        620,  20,  "READ 4a",   "read"),
-  N("r4b",        620, 160,  "READ 4b",   "read"),
-  N("rej_r4b",    620, 270,  "REJECT",     "reject"),
-  // Col 4: READ5
-  N("rej_r5",     800, -40,  "REJECT",     "reject"),
-  N("r5",         800,  90,  "READ₅",        "read"),
-  // Col 5: READ6A/6B
-  N("r6a",        980,  20,  "READ 6a",   "read"),
-  N("rej_r6a",    980, -80,  "REJECT",     "reject"),
-  N("r6b",        980, 160,  "READ 6b",   "read"),
-  N("rej_r6b",    980, 270,  "REJECT",     "reject"),
-  // Col 6: READ7A/7B + READ8
-  N("r7a",       1160,  20,  "READ 7a",   "read"),
-  N("rej_r7a",   1160, -80,  "REJECT",     "reject"),
-  N("r7b",       1160, 160,  "READ 7b",   "read"),
-  N("rej_r7b",   1160, 270,  "REJECT",     "reject"),
-  N("r8",        1160,  90,  "READ₈",        "read"),
-  // Col 7: READ_ACCEPT + ACCEPT
-  N("r_acc",     1340,  90,  "R.ACC", "read"),
-  N("accept",    1520,  90,  "ACCEPT",     "accept"),
+  N("start",   D1,   T,     "START",   "start"),
+  N("r1",      D1,   RR1,   "READ₁",   "read"),
+  N("rej_r1",  D1,   RR2,   "REJECT",  "reject"),
+
+  N("r2a",     D2A,  RR1-60,"READ 2a", "read"),
+  N("rej_r2a", D2A,  RR1-160,"REJECT", "reject"),
+  N("r2b",     D2B,  RR2+60,"READ 2b", "read"),
+  N("rej_r2b", D2B,  RR2+160,"REJECT", "reject"),
+
+  N("r3",      D3,   RR2,   "READ₃",   "read"),
+  N("rej_r3",  D3,   RR2-110,"REJECT", "reject"),
+
+  N("r4a",     D4A,  RR1,   "READ 4a", "read"),
+  N("rej_r4a", D4A,  RR1-100,"REJECT", "reject"),
+  N("r4b",     D4B,  RR3,   "READ 4b", "read"),
+  N("rej_r4b", D4B,  RR3+100,"REJECT", "reject"),
+
+  N("r5a",     D5A,  RR1,   "READ 5a", "read"),
+  N("rej_r5a", D5A,  RR1-100,"REJECT", "reject"),
+  N("r5b",     D5B,  RR3,   "READ 5b", "read"),
+  N("rej_r5b", D5B,  RR3+100,"REJECT", "reject"),
+
+  N("r6",      D6,   RR2,   "READ₆",   "read"),
+  N("rej_r6",  D6,   RR2-110,"REJECT", "reject"),
+
+  N("r7a",     D7A,  RR1,   "READ 7a", "read"),
+  N("rej_r7a", D7A,  RR1-100,"REJECT", "reject"),
+  N("r7b",     D7B,  RR3,   "READ 7b", "read"),
+  N("rej_r7b", D7B,  RR3+100,"REJECT", "reject"),
+
+  N("r8a",     D8A,  RR1,   "READ 8a", "read"),
+  N("acc_r8a", D8A,  RR1-100,"ACCEPT", "accept"),
+  N("r8b",     D8B,  RR3,   "READ 8b", "read"),
+  N("acc_r8b", D8B,  RR3+100,"ACCEPT", "accept"),
+  N("r8c",     D8C,  RR2,   "READ 8c", "read"),
+  N("rej_r8c", D8C,  RR2+110,"REJECT", "reject"),
+
+  N("r9a",     D9A,  RR1,   "READ 9a", "read"),
+  N("acc_r9a", D9A,  RR1-100,"ACCEPT", "accept"),
+  N("r9b",     D9B,  RR3,   "READ 9b", "read"),
+  N("rej_r9b", D9B,  RR3+100,"REJECT", "reject"),
 ];
 
 export const Pda01Edges: Edge[] = [
-  // START -> READ1A (1) and READ1B (0)
-  E("s-r1a",       "start",  "r1a",     "1",     "srt", "tt"),
-  E("s-r1b",       "start",  "r1b",     "0",     "slt", "tt"),
+  // START → READ1
+  E("s-r1",       "start",  "r1",      "",    "s-bot",   "t-top"),
 
-  // READ1A: 1->READ2, 0->REJECT, Delta->REJECT
-  E("r1a-r2",      "r1a",    "r2",      "1",     "sr",  "tl"),
-  E("r1a-rej",     "r1a",    "rej_r1a", "0, Δ", "sb", "tt"),
+  // READ1: 1 → READ2A,  0 → READ2B,  Δ → REJECT
+  E("r1-r2a",     "r1",     "r2a",     "1",   "s-right", "t-left"),
+  E("r1-r2b",     "r1",     "r2b",     "0",   "s-right", "t-left"),
+  E("r1-rej",     "r1",     "rej_r1",  "Δ",   "s-bot",   "t-top"),
 
-  // READ1B: 0->READ2, 1->REJECT, Delta->REJECT
-  E("r1b-r2",      "r1b",    "r2",      "0",     "sr",  "tlb"),
-  E("r1b-rej",     "r1b",    "rej_r1b", "1, Δ", "sb", "tt"),
+  // READ2A: 1 → READ3,  0/Δ → REJECT
+  E("r2a-r3",     "r2a",    "r3",      "1",   "s-right", "t-left"),
+  E("r2a-rej",    "r2a",    "rej_r2a", "0, Δ","s-top",   "t-bot"),
 
-  // READ2: 1->READ3A, 0->READ3B, Delta->REJECT
-  E("r2-r3a",      "r2",     "r3a",     "1",     "srt", "tlb"),
-  E("r2-r3b",      "r2",     "r3b",     "0",     "srb", "tlt"),
-  E("r2-rej",      "r2",     "rej_r2",  "Δ", "st",  "tb"),
+  // READ2B: 0 → READ3,  1/Δ → REJECT
+  E("r2b-r3",     "r2b",    "r3",      "0",   "s-right", "t-left"),
+  E("r2b-rej",    "r2b",    "rej_r2b", "1, Δ","s-bot",   "t-top"),
 
-  // READ3A: 1->READ4A, 0->READ4B, Delta->REJECT
-  E("r3a-r4a",     "r3a",    "r4a",     "1",     "sr",  "tl"),
-  E("r3a-r4b",     "r3a",    "r4b",     "0",     "srb", "tlb"),
+  // READ3: 1 → READ4A,  0 → READ4B,  Δ → REJECT
+  E("r3-r4a",     "r3",     "r4a",     "1",   "s-right", "t-left"),
+  E("r3-r4b",     "r3",     "r4b",     "0",   "s-right", "t-left"),
+  E("r3-rej",     "r3",     "rej_r3",  "Δ",   "s-top",   "t-bot"),
 
-  // READ3B: 1->READ5, 0->READ2(loop), Delta->REJECT
-  E("r3b-r5",      "r3b",    "r5",      "1",     "sr",  "sbl"),
-  E("r3b-r2",      "r3b",    "r2",      "0",     "sb",  "sbr", "smoothstep"),
+  // READ4A: 1 → READ5A,  0 → READ5B,  Δ → REJECT
+  E("r4a-r5a",    "r4a",    "r5a",     "1",   "s-right", "t-left"),
+  E("r4a-r5b",    "r4a",    "r5b",     "0",   "s-right", "t-left"),
+  E("r4a-rej",    "r4a",    "rej_r4a", "Δ",   "s-top",   "t-bot"),
 
-  // READ4A: 1->READ5, 0->READ2(reset), Delta->REJECT
-  E("r4a-r5",      "r4a",    "r5",      "1",     "sr",  "stl"),
-  E("r4a-r2",      "r4a",    "r2",      "0",     "sb",  "str", "smoothstep"),
-  E("r4a-rej",     "r4a",    "rej_r4a", "Δ", "st",  "tb"),
+  // READ4B: 1 → READ6,  0 → READ3 (back),  Δ → REJECT
+  E("r4b-r6",     "r4b",    "r6",      "1",   "s-right", "t-left"),
+  E("r4b-r3",     "r4b",    "r3",      "0",   "s-left",  "t-bot",   true),
+  E("r4b-rej",    "r4b",    "rej_r4b", "Δ",   "s-bot",   "t-top"),
 
-  // READ4B: 1->READ5, 0->READ2(reset), Delta->REJECT
-  E("r4b-r5",      "r4b",    "r5",      "1",     "sr",  "sbl"),
-  E("r4b-r2",      "r4b",    "r2",      "0",     "sb",  "sbr", "smoothstep"),
-  E("r4b-rej",     "r4b",    "rej_r4b", "Δ", "sb",  "tt"),
+  // READ5A: 1 → READ6,  0 → READ4B,  Δ → REJECT
+  E("r5a-r6",     "r5a",    "r6",      "1",   "s-right", "t-left"),
+  E("r5a-r4b",    "r5a",    "r4b",     "0",   "s-bot",   "t-top",   true),
+  E("r5a-rej",    "r5a",    "rej_r5a", "Δ",   "s-top",   "t-bot"),
 
-  // READ5: 1->READ6A, 0->READ6B, Delta->REJECT
-  E("r5-r6a",      "r5",     "r6a",     "1",     "srt", "tlb"),
-  E("r5-r6b",      "r5",     "r6b",     "0",     "srb", "tlt"),
-  E("r5-rej",      "r5",     "rej_r5",  "Δ", "st",  "tb"),
+  // READ5B: 1 → READ6,  0 → READ3 (back),  Δ → REJECT
+  E("r5b-r6",     "r5b",    "r6",      "1",   "s-right", "t-left"),
+  E("r5b-r3",     "r5b",    "r3",      "0",   "s-left",  "t-bot",   true),
+  E("r5b-rej",    "r5b",    "rej_r5b", "Δ",   "s-bot",   "t-top"),
 
-  // READ6A: 1->READ6A(loop), 0->READ7B, Delta->REJECT
-  E("r6a-self",    "r6a",    "r6a",     "1",     "slt", "ttr", "smoothstep"),
-  E("r6a-r7b",     "r6a",    "r7b",     "0",     "srb", "tlt"),
-  E("r6a-rej",     "r6a",    "rej_r6a", "Δ", "st",  "tb"),
+  // READ6: 1 → READ7A,  0 → READ7B,  Δ → REJECT
+  E("r6-r7a",     "r6",     "r7a",     "1",   "s-right", "t-left"),
+  E("r6-r7b",     "r6",     "r7b",     "0",   "s-right", "t-left"),
+  E("r6-rej",     "r6",     "rej_r6",  "Δ",   "s-top",   "t-bot"),
 
-  // READ6B: 0->READ6B(loop), 1->READ7A, Delta->REJECT
-  E("r6b-self",    "r6b",    "r6b",     "0",     "slb", "tbr", "smoothstep"),
-  E("r6b-r7a",     "r6b",    "r7a",     "1",     "srt", "tlb"),
-  E("r6b-rej",     "r6b",    "rej_r6b", "Δ", "sb",  "tt"),
+  // READ7A: 1 → READ8A,  0 → READ8C,  Δ → REJECT
+  E("r7a-r8a",    "r7a",    "r8a",     "1",   "s-right", "t-left"),
+  E("r7a-r8c",    "r7a",    "r8c",     "0",   "s-right", "t-left"),
+  E("r7a-rej",    "r7a",    "rej_r7a", "Δ",   "s-top",   "t-bot"),
 
-  // READ7A (after 0+ path): 0->READ_ACCEPT, 1->READ8, Delta->REJECT
-  E("r7a-acc",     "r7a",    "r_acc",   "0",     "sr",  "stl"),
-  E("r7a-r8",      "r7a",    "r8",      "1",     "sb",  "tlt"),
-  E("r7a-rej",     "r7a",    "rej_r7a", "Δ", "st",  "tb"),
+  // READ7B: 0 → READ7B (self),  1 → READ8B,  Δ → REJECT
+  E("r7b-self",   "r7b",    "r7b",     "0",   "s-bot",   "t-right", true),
+  E("r7b-r8b",    "r7b",    "r8b",     "1",   "s-right", "t-left"),
+  E("r7b-rej",    "r7b",    "rej_r7b", "Δ",   "s-bot",   "t-top"),
 
-  // READ7B (after 1+ path): 0->READ_ACCEPT, 1->READ8, Delta->REJECT
-  E("r7b-acc",     "r7b",    "r_acc",   "0",     "sr",  "sbl"),
-  E("r7b-r8",      "r7b",    "r8",      "1",     "st",  "tlb"),
-  E("r7b-rej",     "r7b",    "rej_r7b", "Δ", "sb",  "tt"),
+  // READ8A: 1 → READ9A,  0 → READ8C,  Δ → ACCEPT
+  E("r8a-r9a",    "r8a",    "r9a",     "1",   "s-right", "t-left"),
+  E("r8a-r8c",    "r8a",    "r8c",     "0",   "s-right", "t-left"),
+  E("r8a-acc",    "r8a",    "acc_r8a", "Δ",   "s-top",   "t-bot"),
 
-  // READ8: 1->READ_ACCEPT (satisfies 11), 0->READ2(reset), Delta->ACCEPT via r_acc
-  E("r8-acc",      "r8",     "r_acc",   "1",     "sr",  "sl"),
-  E("r8-r2",       "r8",     "r2",      "0",     "sl",  "sbr", "smoothstep"),
+  // READ8B: 1 → READ9B,  0 → READ7B (back),  Δ → ACCEPT
+  E("r8b-r9b",    "r8b",    "r9b",     "1",   "s-right", "t-left"),
+  E("r8b-r7b",    "r8b",    "r7b",     "0",   "s-left",  "t-top",   true),
+  E("r8b-acc",    "r8b",    "acc_r8b", "Δ",   "s-bot",   "t-top"),
 
-  // READ_ACCEPT: Delta->ACCEPT, 1->READ3A, 0->READ3B
-  E("racc-acc",    "r_acc",  "accept",  "Δ", "sr",  "tl"),
-  E("racc-r3a",    "r_acc",  "r3a",     "1",     "st",  "srb", "smoothstep"),
-  E("racc-r3b",    "r_acc",  "r3b",     "0",     "sb",  "srb", "smoothstep"),
+  // READ8C: 1 → READ9B,  0 → READ7B (back),  Δ → REJECT
+  E("r8c-r9b",    "r8c",    "r9b",     "1",   "s-right", "t-left"),
+  E("r8c-r7b",    "r8c",    "r7b",     "0",   "s-left",  "t-top",   true),
+  E("r8c-rej",    "r8c",    "rej_r8c", "Δ",   "s-bot",   "t-top"),
+
+  // READ9A: 1 → READ9A (self),  0 → READ8C (back),  Δ → ACCEPT
+  E("r9a-self",   "r9a",    "r9a",     "1",   "s-top",   "t-right", true),
+  E("r9a-r8c",    "r9a",    "r8c",     "0",   "s-left",  "t-top",   true),
+  E("r9a-acc",    "r9a",    "acc_r9a", "Δ",   "s-top",   "t-bot"),
+
+  // READ9B: 1 → READ9A,  0 → READ8C (back),  Δ → REJECT
+  E("r9b-r9a",    "r9b",    "r9a",     "1",   "s-top",   "t-bot",   true),
+  E("r9b-r8c",    "r9b",    "r8c",     "0",   "s-left",  "t-bot",   true),
+  E("r9b-rej",    "r9b",    "rej_r9b", "Δ",   "s-bot",   "t-top"),
 ];
 
 // ─────────────────────────────────────────────────────────────
-//  CORRECT VALIDATION LOGIC
-//  Both regexes validated with precise patterns
+//  VALIDATION — correct regex for both problems
 // ─────────────────────────────────────────────────────────────
 
 function validatePDA(input: string, regex: RegexChoice): boolean {
   if (regex === "regex1") {
-    // (a+b)(a+b)*(aa+bb)(ab+ba)(a+b)*(aba|baa)
     return /^(a|b)(a|b)*(aa|bb)(ab|ba)(a|b)*(aba|baa)$/.test(input);
   } else {
-    // (11+00)(1+0)*(101+111+01)(00*+11*)(1+0+11)
     return /^(11|00)(1|0)*(101|111|01)(0+|1+)(1|0|11)$/.test(input);
   }
 }
@@ -438,85 +437,60 @@ interface PDAModuleProps {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  INNER COMPONENT (needs ReactFlow context from parent)
+//  COMPONENT
 // ─────────────────────────────────────────────────────────────
 
 const PDAInner: React.FC<PDAModuleProps> = ({ lastSimulated, selectedRegex, onSimulationComplete }) => {
-  const baseNodes = selectedRegex === "regex1" ? PdaAbNodes : Pda01Nodes;
-  const baseEdges = selectedRegex === "regex1" ? PdaAbEdges : Pda01Edges;
-
-  const [nodes, setNodes, onNodesChange] = useNodesState(baseNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(baseEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(
+    selectedRegex === "regex1" ? PdaAbNodes : Pda01Nodes
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState(
+    selectedRegex === "regex1" ? PdaAbEdges : Pda01Edges
+  );
   const { fitView } = useReactFlow();
   const prevRegex = useRef(selectedRegex);
-  const prevSimRef = useRef<{ input: string; rowId: number } | null>(null);
+  const prevSim   = useRef<{ input: string; rowId: number } | null>(null);
 
-  // Reset diagram on regex switch
+  // Swap graph when regex changes
   useEffect(() => {
-    if (prevRegex.current !== selectedRegex) {
-      prevRegex.current = selectedRegex;
-      const nb = selectedRegex === "regex1" ? PdaAbNodes : Pda01Nodes;
-      const eb = selectedRegex === "regex1" ? PdaAbEdges : Pda01Edges;
-      setNodes(nb);
-      setEdges(eb);
-      setTimeout(() => fitView({ duration: 400, padding: 0.3 }), 80);
-    }
+    if (prevRegex.current === selectedRegex) return;
+    prevRegex.current = selectedRegex;
+    setNodes(selectedRegex === "regex1" ? PdaAbNodes : Pda01Nodes);
+    setEdges(selectedRegex === "regex1" ? PdaAbEdges : Pda01Edges);
+    setTimeout(() => fitView({ duration: 400, padding: 0.3 }), 80);
   }, [selectedRegex]);
 
-  // Process simulation — instantly validate, then call back
+  // Instant validation — no animation
   useEffect(() => {
-    if (!lastSimulated) return;
-    if (prevSimRef.current === lastSimulated) return;
-    prevSimRef.current = lastSimulated;
-
+    if (!lastSimulated || prevSim.current === lastSimulated) return;
+    prevSim.current = lastSimulated;
     const { input, rowId } = lastSimulated;
-
-    // Validate against correct regex
-    const alphabet = selectedRegex === "regex1" ? /^[ab]*$/ : /^[01]*$/;
-    if (!alphabet.test(input)) {
-      onSimulationComplete(rowId, false);
-      return;
-    }
-
-    const isValid = validatePDA(input, selectedRegex);
-    onSimulationComplete(rowId, isValid);
+    const alphabetOk = selectedRegex === "regex1" ? /^[ab]+$/.test(input) : /^[01]+$/.test(input);
+    onSimulationComplete(rowId, alphabetOk && validatePDA(input, selectedRegex));
   }, [lastSimulated, selectedRegex, onSimulationComplete]);
 
   return (
-    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#D9D9D9" }}>
-
-      {/* ── ReactFlow Canvas ── */}
-      <div style={{ flex: 1, overflow: "hidden" }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          nodeTypes={nodeTypes}
-          nodesDraggable={false}
-          panOnDrag
-          zoomOnScroll
-          zoomOnPinch
-          nodesConnectable={false}
-          fitView
-          fitViewOptions={{ padding: 0.3 }}
-        >
-          <Background
-            color="#515151"
-            variant={BackgroundVariant.Dots}
-            style={{ backgroundColor: "#000000" }}
-          />
-          <Controls />
-        </ReactFlow>
-      </div>
+    <div style={{ width: "100%", height: "100%", background: "#D9D9D9" }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
+        nodesDraggable={false}
+        panOnDrag
+        zoomOnScroll
+        zoomOnPinch
+        nodesConnectable={false}
+        fitView
+        fitViewOptions={{ padding: 0.3 }}
+      >
+        <Background color="#515151" variant={BackgroundVariant.Dots} style={{ backgroundColor: "#000000" }} />
+        <Controls />
+      </ReactFlow>
     </div>
   );
 };
-
-// ─────────────────────────────────────────────────────────────
-//  EXPORT — PDAModule uses the ReactFlow context from parent
-//  (AutomataSimulator wraps everything in ReactFlowProvider)
-// ─────────────────────────────────────────────────────────────
 
 const PDAModule: React.FC<PDAModuleProps> = (props) => <PDAInner {...props} />;
 export default PDAModule;
