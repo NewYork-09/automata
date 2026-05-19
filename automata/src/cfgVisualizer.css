@@ -1,0 +1,330 @@
+.cfg-container {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    width: 100%;
+    height: 100%;
+    max-height: 580px;
+    background-color: #000000;
+    background-image: radial-gradient(#515151 0.5px, transparent 0.5px);
+    background-size: 20px 20px;
+    padding: 20px;
+    font-family: inherit;
+    color: #ffffff;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.cfg-panel {
+    border: 1px solid #ababab;
+    background: #1f1f1f;
+    border-radius: 8px;
+    padding: 15px;
+
+    height: 100%;
+    overflow-y: auto;
+    position: relative;
+
+    /* Custom Scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: #444 #0a0a0a;
+
+    display: flex;          
+    flex-direction: column;
+}
+
+.cfg-panel::-webkit-scrollbar {
+    width: 6px;
+}
+.cfg-panel::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+.panel-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #74DCFF;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+    border-bottom: 1px solid #ababab;
+    padding-bottom: 8px;
+}
+
+/* VTPS Styles */
+.vtps-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 12px;
+}
+
+.vtps-content {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    gap: 8px;
+    font-size: 0.85rem;
+    flex: 1;
+}
+
+.vtps-label {
+    color: #efefef;
+    font-weight: bold;
+}
+
+.vtps-value {
+    color: #ccc;
+    word-break: break-all;
+    padding-left: 15px;
+}
+
+/* Production Styles */
+.production-section {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    flex: 1; 
+}
+
+.production-header {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #454545;
+    text-align: left;
+}
+
+.production-header .vtps-label {
+    color: #efefef;
+}
+
+.production-list {
+    background: #111;
+    border: 1px solid #454545;
+    padding: 17px 16px;
+    border-radius: 6px;
+    margin-top: 5px;
+    margin-left: -10px;
+    margin-right: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.rule-line {
+    display: flex;
+    gap: 12px;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+.rules-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.lhs {
+    color: #74dcff;
+    font-weight: bold;
+    min-width: 15px;
+    text-align: right;
+}
+
+.arrow {
+    color: #666;
+    flex-shrink: 0;
+}
+
+.rhs {
+    color: #ccc;
+    letter-spacing: 0.5px;
+}
+
+/* Trace Item Updates */
+.step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.step-number {
+    font-size: 0.7rem;
+    color: #555;
+    margin-bottom: 0;
+}
+
+/* Empty State Updates */
+.empty-icon {
+    margin-bottom: 12px;
+    opacity: 0.9;
+}
+
+/* Error States */
+.error-icon {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 50%;
+    font-size: 2rem;
+}
+
+.error-text {
+    color: #ef4444;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.error-subtext {
+    color: #888;
+    font-size: 0.85rem;
+    margin-top: 8px;
+}
+
+/* Trace List Styles */
+.trace-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 20px;
+}
+
+.trace-item {
+    padding: 10px 15px;
+    border-left: 3px solid #222;
+    background: #111;
+    border-radius: 0 6px 6px 0;
+    transition: all 0.3s ease;
+}
+
+.trace-item.past {
+    border-left-color: #3b82f6;
+    opacity: 0.8;
+}
+
+.trace-item.active {
+    background: #1a1a1a;
+    border-left-color: #74dcff;
+    box-shadow: inset 0 0 15px rgba(116, 220, 255, 0.05);
+    transform: translateX(5px);
+}
+
+.derivation-string {
+    font-size: 1.15rem;
+    letter-spacing: 1px;
+}
+
+.done {
+    color: #3b82f6;
+}
+
+.current-focus {
+    color: #74dcff;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(116, 220, 255, 0.3);
+}
+
+.future {
+    color: #555;
+}
+
+/* Empty & Error Container States */
+.trace-empty,
+.trace-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 80%;
+    text-align: center;
+}
+
+.trace-empty p {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 5px 0;
+}
+
+.trace-empty-sub {
+    color: #444 !important;
+    font-size: 0.8rem !important;
+}
+
+.trace-error {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px dashed rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    margin: 20px;
+}
+
+/* --- Climactic Success Animations --- */
+@keyframes successPulse {
+    0% {
+        box-shadow:
+            inset 0 0 15px rgba(34, 197, 94, 0.2),
+            0 0 0 rgba(34, 197, 94, 0);
+        transform: translateX(5px) scale(1);
+    }
+    50% {
+        box-shadow:
+            inset 0 0 25px rgba(34, 197, 94, 0.5),
+            0 0 25px rgba(34, 197, 94, 0.4);
+        transform: translateX(5px) scale(1.03);
+        border-left-color: #4ade80;
+        background: #022c22 !important;
+    }
+    100% {
+        box-shadow:
+            inset 0 0 15px rgba(34, 197, 94, 0.2),
+            0 0 15px rgba(34, 197, 94, 0.15);
+        transform: translateX(5px) scale(1);
+    }
+}
+
+@keyframes iconPop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.4);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Apply animations to the final valid row */
+.trace-item.valid-final {
+    background: #064e3b !important;
+    border-left-color: #22c55e !important;
+    animation: successPulse 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+        forwards;
+    z-index: 10;
+    position: relative;
+}
+
+/* Animate the checkmark */
+.trace-item.valid-final .step-header svg {
+    animation: iconPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Turn the ENTIRE string glowing green to show completion */
+.trace-item.valid-final .done,
+.trace-item.valid-final .current-focus,
+.trace-item.valid-final .future {
+    color: #4ade80 !important;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.6) !important;
+    transition:
+        color 0.4s ease,
+        text-shadow 0.4s ease;
+}

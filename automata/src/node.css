@@ -1,0 +1,100 @@
+/* Node */
+
+.state-circle {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    border-radius: 70%;
+    color: white;
+    border: 2px solid #acacac;
+    background: #3b3b3b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease; /* Makes the highlight "fade" in smoothly */
+}
+
+.accept-state {
+    border: 6px double #acacac;
+}
+
+.highlighting {
+    border-color: #74DCFF !important; /* Bright Cyan for the ACTIVE node */
+    background-color: #1a1a1a !important;
+    box-shadow: 0 0 25px rgba(116, 220, 255, 0.8) !important;
+    transform: scale(1.2); /* Make current node pop more */
+    z-index: 10;
+}
+
+.highlighted {
+    border-color: #3b82f6 !important; /* Darker Blue for VISITED nodes */
+    background-color: #0f172a !important;
+    opacity: 0.9;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    transform: scale(1.0); /* Keep visited nodes at normal size */
+}
+
+
+.is-valid {
+    border-color: #22c55e !important; /* Emerald Green */
+    background-color: #064e3b !important; /* Deep Forest Green background */
+    box-shadow: 
+        0 0 20px rgba(34, 197, 94, 0.8), 
+        0 0 40px rgba(34, 197, 94, 0.4) !important;
+    transform: scale(1.15); /* Keep it slightly enlarged as the final result */
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 15;
+}
+
+.is-invalid {
+    border-color: #ef4444 !important; /* Bright Red */
+    background-color: #450a0a !important; /* Deep Maroon background */
+    box-shadow: 
+        0 0 20px rgba(239, 68, 68, 0.8), 
+        0 0 40px rgba(239, 68, 68, 0.4) !important;
+    transform: scale(1.15);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 15;
+}
+
+.horizontal-left {
+    left: 25% !important;
+    opacity: 0;
+}
+
+.horizontal-mid {
+    left: 50% !important;
+    opacity: 0;
+}
+
+.horizontal-right {
+    left: 75% !important;
+    opacity: 0;
+}
+
+.vertical-top {
+    top: 25% !important;
+    opacity: 0;
+}
+
+.vertical-mid {
+    top: 50% !important;
+    opacity: 0;
+}
+
+.vertical-bottom {
+    top: 75% !important;
+    opacity: 0;
+}
+
+/* Edge */
+.react-flow__edge.animated path {
+    stroke-dasharray: 12 10 !important; 
+    animation-duration: 0.4s !important; 
+    
+    /* Glow effect */
+    filter: drop-shadow(0 0 5px rgba(116, 220, 255, 0.8));
+    
+    /* Make it sit on top of other stuff */
+    z-index: 10;
+}
