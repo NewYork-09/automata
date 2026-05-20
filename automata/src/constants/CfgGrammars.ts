@@ -8,11 +8,11 @@ export const Cfg01Grammar = {
         P: [
             "S -> ABCDG",
             "A -> 11 | 00",
-            "B -> 1B | 0B | ε",
+            "B -> 1B | 0B | λ",
             "C -> 101 | 111 | 01",
             "D -> 0E | 1F",
-            "E -> 0E | ε",
-            "F -> 1F | ε",
+            "E -> 0E | λ",
+            "F -> 1F | λ",
             "G -> 1 | 0 | 11"
         ],
         S: "S",
@@ -52,7 +52,7 @@ export const CfgABGrammar = {
         P: [
             "S -> ABCDBE",
             "A -> a | b",
-            "B -> a | b | ε",
+            "B -> a | b | λ",
             "C -> aa | bb",
             "D -> ab | ba",
             "E -> aba | baa"

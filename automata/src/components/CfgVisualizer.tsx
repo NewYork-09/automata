@@ -95,7 +95,7 @@ export const CfgVisualizer: React.FC<CfgVisualizerProps> = ({
                                             </span>
                                             <span className="arrow">→</span>
                                             <span className="rhs">
-                                                {parts[1]?.trim() || "ε"}
+                                                {parts[1]?.trim() || "λ"}
                                             </span>
                                         </div>
                                     );
