@@ -436,9 +436,9 @@ export function AutomataSimulator({ selectedRegex, selectedModel, handleNavigate
                   className="bg-gray-100 border-none rounded-none h-10 placeholder:text-gray-400 focus-visible:ring-1 focus-visible:ring-gray-300"
                 />
                 <span className={`text-[12px] font-bold tracking-tight truncate ${
-                  row.status === "VALID" ? "text-green-600" : row.status === "INVALID" ? "text-red-600" : row.status === "READY" ? "text-yellow-600" : row.status === "PROCESSING" ? "processing-pulse" : "text-gray-300"
+                  row.status === "VALID" ? "text-green-600" : row.status === "INVALID" ? "text-red-600" : row.status === "READY" ? "text-yellow-600" : row.status === "PROCESSING" ? (selectedModel === "pda" ? "" : "processing-pulse") : "text-gray-300"
                 }`}>
-                  {row.status === "No string" ? "NO STRING" : row.status}
+                  {row.status === "No string" ? "NO STRING" : (selectedModel === "pda" && row.status === "PROCESSING") ? "" : row.status}
                 </span>
                 <Button
                   variant="secondary"
