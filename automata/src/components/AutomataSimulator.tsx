@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronUp } from "lucide-react"; 
+import { ChevronUp, Maximize2, Minimize2 } from "lucide-react"; 
 
 // Graph Imports
 import { ReactFlow, Background, BackgroundVariant, Controls, useReactFlow, useNodesState, useEdgesState } from "@xyflow/react";
@@ -102,6 +102,14 @@ export function AutomataSimulator({ selectedRegex, selectedModel, handleNavigate
 
   // PDA States
   const [lastSimulatedPda, setLastSimulatedPda] = useState<{ input: string; rowId: number } | null>(null);
+
+  // Fullscreen State
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = isFullscreen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isFullscreen]);
 
   // Cancel State
   const simulationRef = useRef<number>(0)
@@ -448,15 +456,40 @@ export function AutomataSimulator({ selectedRegex, selectedModel, handleNavigate
         {/* Right Column */}
         <div className="min-w-0">
           <div className="flex justify-between items-center mb-6">
-            <span className="font-semibold text-md tracking-wider text-gray-400">
-              Transition Diagram
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-md tracking-wider text-gray-400">
+                {selectedModel === "cfg" ? "CFG Visualization" : selectedModel === "pda" ? "PDA Diagram" : "Transition Diagram"}
+              </span>
+              {selectedModel !== "cfg" && (
+                <button
+                  onClick={() => setIsFullscreen((prev) => !prev)}
+                  className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                  aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                >
+                  {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                </button>
+              )}
+            </div>
             <span className="font-semibold text-md tracking-wider text-gray-400">
               Selected RegEx:{" "}
               <span className="text-gray-600 font-normal ml-2">{regexLabel}</span>
             </span>
           </div>
-          <div className="w-full h-[580px] bg-[#D9D9D9] border border-gray-200 overflow-hidden">
+          <div className={isFullscreen ? "fixed inset-0 z-50 bg-[#D9D9D9] overflow-hidden" : "w-full h-[580px] bg-[#D9D9D9] border border-gray-200 overflow-hidden"}>
+            {isFullscreen && (
+              <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-center pointer-events-none">
+                <button
+                  onClick={() => setIsFullscreen(false)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-black/60 hover:bg-black/80 text-white text-sm font-semibold rounded-lg pointer-events-auto cursor-pointer transition-colors"
+                >
+                  <Minimize2 size={14} />
+                  Back
+                </button>
+                <span className="font-semibold text-sm tracking-wider text-white/80 bg-black/60 px-3 py-1.5 rounded-lg">
+                  Selected RegEx: <span className="font-normal ml-1">{regexLabel}</span>
+                </span>
+              </div>
+            )}
             {selectedModel === "dfa" ? (
               <ReactFlow 
                 nodes={displayNodes}
