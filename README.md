@@ -1,1 +1,1 @@
-npm install then npm run dev 😎
+cd automata, npm install, npm run dev 😎
